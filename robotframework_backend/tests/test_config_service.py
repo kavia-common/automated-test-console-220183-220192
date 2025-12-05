@@ -42,16 +42,24 @@ def test_write_and_read_json_config():
     assert loaded == content
 
 
-def test_list_config_folders_empty_and_nonempty(tmp_path):
-    # empty -> []
+def test_list_config_folders_empty_and_nonempty(tmp_path, monkeypatch):
+    """
+    Ensure the test does not depend on prior tests by isolating CONFIG_DIR.
+    First assert empty list, then create envs/profiles and assert sorted list.
+    """
+    # Point CONFIG_DIR to a fresh temporary folder
+    monkeypatch.setattr(settings, "CONFIG_DIR", str(tmp_path), raising=False)
+
+    # Initially empty -> []
     folders = list_config_folders()
     assert folders == []
 
-    # create folders
+    # Create folders under the isolated CONFIG_DIR
     os.makedirs(os.path.join(settings.CONFIG_DIR, "envs"), exist_ok=True)
     os.makedirs(os.path.join(settings.CONFIG_DIR, "profiles"), exist_ok=True)
+
     folders = list_config_folders()
-    # sorted order
+    # Expect sorted order
     assert folders == ["envs", "profiles"]
 
 
