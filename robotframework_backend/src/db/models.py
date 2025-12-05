@@ -25,7 +25,8 @@ class TestRun(Base):
     suite_name: Mapped[Optional[str]] = mapped_column(String(255), index=True, nullable=True)
     start_time: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
     end_time: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
-    status: Mapped[str] = mapped_column(String(50), default="running", index=True)  # running|passed|failed|stopped|error
+    # running|passed|failed|stopped|error
+    status: Mapped[str] = mapped_column(String(50), default="running", index=True)
     total_cases: Mapped[int] = mapped_column(Integer, default=0)
     passed: Mapped[int] = mapped_column(Integer, default=0)
     failed: Mapped[int] = mapped_column(Integer, default=0)

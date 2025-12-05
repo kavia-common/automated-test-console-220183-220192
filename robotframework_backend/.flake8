@@ -1,7 +1,16 @@
 [flake8]
-exclude = .git,__pycache__,build,dist,venv
-select = E9,F
+exclude = 
+    .git,
+    __pycache__,
+    .venv,
+    venv,
+    env,
+    build,
+    dist,
+    .pytest_cache,
+    .mypy_cache,
+    */site-packages/*
 max-line-length = 120
-per-file-ignores =
-    __init__.py:F401
-max-complexity = 18
+extend-ignore = 
+    E203,
+    W503

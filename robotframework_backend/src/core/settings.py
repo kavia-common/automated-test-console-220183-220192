@@ -7,7 +7,13 @@ from dotenv import load_dotenv
 
 # Load environment from a .env file if present (backend container root)
 # This enables local development without needing to export variables.
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), ".env"), override=False)
+load_dotenv(
+    dotenv_path=os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+        ".env",
+    ),
+    override=False,
+)
 
 
 class _Settings(BaseModel):

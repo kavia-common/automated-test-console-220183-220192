@@ -169,7 +169,12 @@ class RobotRunController:
                     failed_total += f
                     add_batch_log(db, run_id, f"Loop {i+1} completed: passed={p}, failed={f}, rc={rc}")
                     if f > 0:
-                        add_fail_log(db, run_id, message=f"{f} failures detected in loop {i+1}", error_type="RobotFailure")
+                        add_fail_log(
+                            db,
+                            run_id,
+                            message=f"{f} failures detected in loop {i+1}",
+                            error_type="RobotFailure",
+                        )
 
                 if batch and i < (loop - 1):
                     write_line("Batch mode: short delay before next loop.")
@@ -179,7 +184,14 @@ class RobotRunController:
             final_status = "stopped" if self._stop_event.is_set() else ("failed" if failed_total > 0 else "passed")
             with SessionLocal() as db:
                 finalize_test_run(db, run_id, status=final_status, passed=passed_total, failed=failed_total)
-                add_batch_log(db, run_id, f"Run finalized with status={final_status}, passed={passed_total}, failed={failed_total}")
+                add_batch_log(
+                    db,
+                    run_id,
+                    (
+                        f"Run finalized with status={final_status}, "
+                        f"passed={passed_total}, failed={failed_total}"
+                    ),
+                )
         except Exception as ex:
             with SessionLocal() as db:
                 add_fail_log(Session(db.connection()), run_id, message=str(ex), error_type="RunnerError")

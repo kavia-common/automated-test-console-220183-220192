@@ -8,14 +8,17 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 
-# Import application modules
-from src.api.main import app
+# IMPORTANT: Set environment overrides before importing the FastAPI app to ensure
+# any env-based configuration reads the right values. We still mutate settings later
+# for runtime, but this ensures any import-time .env reads or defaults don't conflict.
 from src.db.database import Base
 from src.core.settings import settings
+from src.api.main import app
 
 # Note on settings:
 # settings is instantiated on import reading env once. We override relevant paths and inject a new DB engine
 # for tests by creating a separate engine and overriding get_db dependency for the FastAPI app.
+
 
 @pytest.fixture(scope="session")
 def tmp_workdir():
@@ -71,6 +74,11 @@ def override_settings_and_env(test_paths, test_db_engine):
     Override settings directories and simulate USE_SSE enabled by default for most tests.
     Some tests can toggle USE_SSE via monkeypatch.
     """
+    # Export env vars first to ensure any getenv reads use isolated temp dirs
+    os.environ["LOG_DIR"] = test_paths["LOG_DIR"]
+    os.environ["CONFIG_DIR"] = test_paths["CONFIG_DIR"]
+    os.environ["ROBOT_PROJECT_ROOT"] = test_paths["ROBOT_PROJECT_ROOT"]
+
     # Mutate settings instance paths so code importing settings uses test directories
     settings.LOG_DIR = test_paths["LOG_DIR"]
     settings.CONFIG_DIR = test_paths["CONFIG_DIR"]
@@ -94,9 +102,11 @@ def app_client(TestSessionLocal, monkeypatch):
 
     # Override SessionLocal used by the app code paths calling SessionLocal() directly
     monkeypatch.setattr(db_module, "SessionLocal", TestSessionLocal, raising=True)
+
     # Also ensure engine_url function reports sqlite memory-ish for safety
     def fake_get_engine_url() -> str:
         return "sqlite:///test_app.db"
+
     monkeypatch.setattr(db_module, "get_engine_url", fake_get_engine_url, raising=True)
 
     # Override FastAPI dependency get_db to use TestSessionLocal

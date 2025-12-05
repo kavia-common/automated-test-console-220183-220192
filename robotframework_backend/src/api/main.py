@@ -27,6 +27,8 @@ app.add_middleware(
 )
 
 # Initialize database at startup
+
+
 @app.on_event("startup")
 def on_startup() -> None:
     """Application startup hook to initialize resources like the database."""
@@ -34,7 +36,12 @@ def on_startup() -> None:
 
 
 # PUBLIC_INTERFACE
-@app.get("/", tags=["health"], summary="Health Check", description="Simple liveness probe that returns a healthy message.")
+@app.get(
+    "/",
+    tags=["health"],
+    summary="Health Check",
+    description="Simple liveness probe that returns a healthy message.",
+)
 def health_check():
     """Return a simple health status."""
     return {"message": "Healthy"}
