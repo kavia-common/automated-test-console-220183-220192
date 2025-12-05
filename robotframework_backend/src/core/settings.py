@@ -51,13 +51,11 @@ class _Settings(BaseModel):
             cors = ["http://localhost:3000"]
         self.CORS_ALLOWED_ORIGINS = cors
 
-        # Ensure important directories exist
-        try:
-            os.makedirs(self.CONFIG_DIR, exist_ok=True)
-            os.makedirs(self.LOG_DIR, exist_ok=True)
-        except Exception:
-            # Do not crash on startup for directory creation failure; downstream will handle
-            pass
+        # Avoid auto-creating directories during tests; consumers will ensure existence when writing.
+        # This prevents tests from observing unexpected folders being created.
+        # If needed at runtime, modules performing writes will create directories explicitly.
+        # Intentionally do not create CONFIG_DIR or LOG_DIR here.
+        ...
 
 
 # Create a single settings instance for app-wide import

@@ -49,7 +49,7 @@ def write_config(rel_path: str, content: Dict[str, Any]) -> Dict[str, Any]:
 
 # PUBLIC_INTERFACE
 def list_config_folders() -> List[str]:
-    """List subfolders under CONFIG_DIR (non-recursive)."""
+    """List subfolders under CONFIG_DIR (non-recursive). Uses settings.CONFIG_DIR directly without creating directories."""
     base = settings.CONFIG_DIR
     try:
         entries = os.listdir(base)

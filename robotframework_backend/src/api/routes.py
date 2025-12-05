@@ -115,29 +115,32 @@ async def logs():
 
 # PUBLIC_INTERFACE
 @router.get("/batch_log", summary="Batch log", description="Return current batch log contents for polling fallback.")
-def batch_log() -> str:
+def batch_log():
     """Return entire current runner log file as text for polling fallback."""
+    from starlette.responses import PlainTextResponse
     log_file = controller.get_log_file()
     if not log_file:
-        return ""
+        return PlainTextResponse("")
     try:
         with open(log_file, "r", encoding="utf-8") as f:
-            return f.read()
+            content = f.read()
+            return PlainTextResponse(content)
     except FileNotFoundError:
-        return ""
+        return PlainTextResponse("")
 
 
 # PUBLIC_INTERFACE
 @router.get("/fail_log", summary="Fail log", description="Return a simple joined fail log messages for current run.")
-def fail_log(run_id: int = Query(..., description="Run id"), db: Session = Depends(get_db)) -> str:
+def fail_log(run_id: int = Query(..., description="Run id"), db: Session = Depends(get_db)):
     """Return a text aggregation of failure logs for the run."""
+    from starlette.responses import PlainTextResponse
     from src.db import models
     from sqlalchemy import select
     stmt = select(models.FailLog).where(models.FailLog.test_run_id == run_id).order_by(models.FailLog.timestamp)
     lines = []
     for row in db.scalars(stmt):
         lines.append(f"[{row.timestamp.isoformat()}] {row.error_type or 'Failure'}: {row.message}")
-    return "\n".join(lines)
+    return PlainTextResponse("\n".join(lines))
 
 
 # PUBLIC_INTERFACE

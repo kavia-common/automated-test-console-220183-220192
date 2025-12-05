@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import List, Optional, Tuple
 
 from sqlalchemy.orm import Session
-from sqlalchemy import select, func, desc
+from sqlalchemy import select, func, desc, case
 
 from src.db import models
 
@@ -142,10 +142,12 @@ def get_run_stats(db: Session, run_id: int) -> Optional[Tuple[int, int, int]]:
 # PUBLIC_INTERFACE
 def count_case_status(db: Session, run_id: int) -> Tuple[int, int, int]:
     """Compute counts for passed/failed/other from case results."""
+    passed_case = case((models.TestCaseResult.status == "passed", 1), else_=0)
+    failed_case = case((models.TestCaseResult.status == "failed", 1), else_=0)
     stmt = (
         select(
-            func.sum(func.case((models.TestCaseResult.status == "passed", 1), else_=0)),
-            func.sum(func.case((models.TestCaseResult.status == "failed", 1), else_=0)),
+            func.sum(passed_case),
+            func.sum(failed_case),
             func.count(),
         )
         .where(models.TestCaseResult.test_run_id == run_id)
