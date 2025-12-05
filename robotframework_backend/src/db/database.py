@@ -4,13 +4,14 @@ from typing import Generator
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
 
-# Load database URL from environment with fallback to local SQLite file
-# Note: Ensure the environment variable DATABASE_URL is set by the orchestrator in .env.
+from src.core.settings import settings
+
+# Load database URL from settings/env with fallback to local SQLite file
 DEFAULT_SQLITE_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "app.db")
 os.makedirs(os.path.dirname(DEFAULT_SQLITE_PATH), exist_ok=True)
 
-DATABASE_URL = os.getenv("DATABASE_URL")
-if not DATABASE_URL or DATABASE_URL.strip() == "":
+DATABASE_URL = settings.DATABASE_URL
+if not DATABASE_URL or str(DATABASE_URL).strip() == "":
     # SQLite URL format for SQLAlchemy
     DATABASE_URL = f"sqlite:///{DEFAULT_SQLITE_PATH}"
 
@@ -18,7 +19,7 @@ if not DATABASE_URL or DATABASE_URL.strip() == "":
 # For SQLite, check_same_thread must be False for use with FastAPI
 engine = create_engine(
     DATABASE_URL,
-    connect_args={"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {},
+    connect_args={"check_same_thread": False} if str(DATABASE_URL).startswith("sqlite") else {},
     pool_pre_ping=True,
 )
 
