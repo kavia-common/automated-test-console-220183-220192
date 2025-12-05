@@ -36,8 +36,10 @@ class _Settings(BaseModel):
         super().__init__(**data)
         # Parse CORS allowed origins from comma-separated env string
         cors = [o.strip() for o in (self._cors_env or "").split(",") if o.strip()]
-        # Fallback to wildcard in dev if not explicitly set
-        self.CORS_ALLOWED_ORIGINS = cors if cors else ["*"]
+        # Fallback defaults for local development: include frontend origin explicitly
+        if not cors:
+            cors = ["http://localhost:3000"]
+        self.CORS_ALLOWED_ORIGINS = cors
 
         # Ensure important directories exist
         try:
