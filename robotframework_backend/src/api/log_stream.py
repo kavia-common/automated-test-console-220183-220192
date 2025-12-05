@@ -25,6 +25,8 @@ async def get_log_sse(request: Optional[Request] = None) -> EventSourceResponse:
         "Cache-Control": "no-cache",
         "Connection": "keep-alive",
         "X-Accel-Buffering": "no",  # for proxies like nginx
+        # Explicit SSE content type helps some proxies/clients
+        "Content-Type": "text/event-stream",
     }
     # When origin is present, reflect it back to satisfy CORS for credential-less SSE
     if origin:
@@ -32,6 +34,8 @@ async def get_log_sse(request: Optional[Request] = None) -> EventSourceResponse:
     else:
         # As a safe default in dev, allow localhost frontend
         headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
-    headers["Access-Control-Allow-Credentials"] = "true"
+    # EventSource does not send credentials by default; avoid forcing credentials CORS
+    # so browsers don't block it for cross-origin EventSource.
+    # headers["Access-Control-Allow-Credentials"] intentionally omitted.
 
     return EventSourceResponse(gen(), ping=10000, headers=headers)

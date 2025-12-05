@@ -2,6 +2,12 @@ import os
 from typing import List, Optional
 
 from pydantic import BaseModel
+from dotenv import load_dotenv
+
+
+# Load environment from a .env file if present (backend container root)
+# This enables local development without needing to export variables.
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), ".env"), override=False)
 
 
 class _Settings(BaseModel):
@@ -17,7 +23,11 @@ class _Settings(BaseModel):
     _cors_env: str = os.getenv("CORS_ALLOWED_ORIGINS", "")
 
     # Paths
-    ROBOT_PROJECT_ROOT: str = os.getenv("ROBOT_PROJECT_ROOT", os.getcwd())
+    # Default ROBOT_PROJECT_ROOT to ./robot inside the backend root for local dev
+    ROBOT_PROJECT_ROOT: str = os.getenv(
+        "ROBOT_PROJECT_ROOT",
+        os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "robot"),
+    )
     CONFIG_DIR: str = os.getenv("CONFIG_DIR", os.path.join(ROBOT_PROJECT_ROOT, "config"))
     LOG_DIR: str = os.getenv("LOG_DIR", os.path.join(ROBOT_PROJECT_ROOT, "logs"))
 
