@@ -140,6 +140,9 @@ def fail_log(run_id: int = Query(..., description="Run id"), db: Session = Depen
     lines = []
     for row in db.scalars(stmt):
         lines.append(f"[{row.timestamp.isoformat()}] {row.error_type or 'Failure'}: {row.message}")
+    # When there are no lines, return an explicit empty string
+    if not lines:
+        return PlainTextResponse("")
     return PlainTextResponse("\n".join(lines))
 
 

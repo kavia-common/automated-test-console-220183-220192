@@ -62,8 +62,8 @@ def db_info():
 def db_check(db: Session = Depends(get_db)):
     """Open a session and run a minimal query to verify DB connectivity."""
     # Use sqlalchemy.text to execute a minimal query in a dialect-agnostic way
-    from sqlalchemy import text
-    db.execute(text("SELECT 1"))
+    from sqlalchemy import text as sqlalchemy_text
+    db.execute(sqlalchemy_text("SELECT 1"))
     return {"ok": True}
 
 
