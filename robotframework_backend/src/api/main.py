@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from src.core.settings import settings
 from src.db.database import init_db, get_db, get_engine_url
+from src.api.routes import router as robot_router
 
 app = FastAPI(
     title="RobotFramework Backend API",
@@ -12,6 +13,7 @@ app = FastAPI(
     openapi_tags=[
         {"name": "health", "description": "Health and diagnostics"},
         {"name": "db", "description": "Database operations and diagnostics"},
+        {"name": "robot", "description": "Robot run orchestration, logs, config, and state APIs"},
     ],
 )
 
@@ -62,3 +64,7 @@ def db_check(db: Session = Depends(get_db)):
     # SQLAlchemy 2.0 will accept text SQL in execute for simple checks
     db.execute("SELECT 1")
     return {"ok": True}
+
+
+# Include robot orchestration routes
+app.include_router(robot_router)
