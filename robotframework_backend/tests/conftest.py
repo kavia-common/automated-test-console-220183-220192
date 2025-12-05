@@ -3,31 +3,37 @@ import shutil
 import tempfile
 from contextlib import contextmanager
 
+# Third-party imports at top to satisfy E402
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 
-# IMPORTANT: Set environment overrides before importing the FastAPI app to ensure
-# any env-based configuration reads the right values. We still mutate settings later
-# for runtime, but this ensures any import-time .env reads or defaults don't conflict.
-from src.db.database import Base
-from src.core.settings import settings
-from src.api.main import app
+# IMPORTANT: Configure temp paths in env BEFORE importing app/settings-dependent modules.
+# This ensures CONFIG_DIR/LOG_DIR/ROBOT_PROJECT_ROOT are isolated per test session.
+_tmp_root = tempfile.mkdtemp(prefix="rf_backend_tests_")  # noqa: E402
+os.environ.setdefault("ROBOT_PROJECT_ROOT", os.path.join(_tmp_root, "robot"))  # noqa: E402
+os.environ.setdefault("CONFIG_DIR", os.path.join(_tmp_root, "configs"))  # noqa: E402
+os.environ.setdefault("LOG_DIR", os.path.join(_tmp_root, "logs"))  # noqa: E402
+
+# Now it's safe to import app and settings
+from src.db.database import Base  # noqa: E402
+from src.core.settings import settings  # noqa: E402
+from src.api.main import app  # noqa: E402
 
 # Note on settings:
-# settings is instantiated on import reading env once. We override relevant paths and inject a new DB engine
-# for tests by creating a separate engine and overriding get_db dependency for the FastAPI app.
+# settings is instantiated on import reading env once. We still mutate specific fields below to
+# guarantee they match the isolated temp directories for this pytest session.
 
 
 @pytest.fixture(scope="session")
 def tmp_workdir():
     """Session-scoped temp working directory to host LOG_DIR, CONFIG_DIR, and SQLite file."""
-    d = tempfile.mkdtemp(prefix="rf_backend_tests_")
+    # Use the precreated root so that imports above already read the correct env
     try:
-        yield d
+        yield _tmp_root
     finally:
-        shutil.rmtree(d, ignore_errors=True)
+        shutil.rmtree(_tmp_root, ignore_errors=True)
 
 
 @pytest.fixture(scope="session")
@@ -74,7 +80,7 @@ def override_settings_and_env(test_paths, test_db_engine):
     Override settings directories and simulate USE_SSE enabled by default for most tests.
     Some tests can toggle USE_SSE via monkeypatch.
     """
-    # Export env vars first to ensure any getenv reads use isolated temp dirs
+    # Ensure environment reflects isolated temp dirs (already set pre-import, but keep consistent)
     os.environ["LOG_DIR"] = test_paths["LOG_DIR"]
     os.environ["CONFIG_DIR"] = test_paths["CONFIG_DIR"]
     os.environ["ROBOT_PROJECT_ROOT"] = test_paths["ROBOT_PROJECT_ROOT"]

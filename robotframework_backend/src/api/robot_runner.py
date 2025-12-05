@@ -135,6 +135,7 @@ class RobotRunController:
 
         os.makedirs(log_dir, exist_ok=True)
         runner_log_file = os.path.join(log_dir, "runner.log")
+
         # Basic file logger
         def write_line(msg: str) -> None:
             ts = datetime.utcnow().isoformat()
